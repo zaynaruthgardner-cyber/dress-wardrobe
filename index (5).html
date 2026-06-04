@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>On Occasion — Dress Wardrobe</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1A1108; --cream: #F5F0E8; --terra: #C0392B; --terra-lt: #F4E0DD;
+  --stone: #7A6A5A; --stone-lt: #EDE8DF; --white: #fff;
+  --green: #2E7D32; --green-lt: #E8F5E9;
+  --amber: #854F0B; --amber-lt: #FFF8E1;
+  --red: #C62828; --red-lt: #FDECEA;
+  --blue: #1565C0; --blue-lt: #E3F2FD;
+  --border: rgba(26,17,8,.1); --border-md: rgba(26,17,8,.18);
+  --shadow: 0 1px 3px rgba(26,17,8,.08), 0 4px 16px rgba(26,17,8,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%;background:var(--cream);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:15px}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-rows:auto 1fr;min-height:100vh}
+header{background:var(--ink);padding:1.1rem 2rem;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--terra);position:sticky;top:0;z-index:100}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--terra);letter-spacing:.03em}
+.logo-sub{font-size:.65rem;color:rgba(255,255,255,.35);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+.header-right{display:flex;align-items:center;gap:12px}
+.stat-chip{text-align:right}
+.stat-chip .val{font-size:1.1rem;font-weight:500;color:#fff}
+.stat-chip .lbl{font-size:.6rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em}
+
+main{padding:1.5rem 2rem 4rem;max-width:1200px;margin:0 auto;width:100%}
+
+/* ── ADD DRESS SECTION ── */
+.add-section{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.75rem;box-shadow:var(--shadow)}
+.add-title{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--ink);margin-bottom:4px}
+.add-sub{font-size:.82rem;color:var(--stone);margin-bottom:1rem}
+.url-row{display:flex;gap:10px}
+.url-input{flex:1;padding:10px 14px;border:0.5px solid var(--border-md);border-radius:8px;font-size:.875rem;font-family:'DM Sans',sans-serif;color:var(--ink);background:var(--cream);outline:none;transition:border-color .15s}
+.url-input:focus{border-color:var(--terra)}
+.url-input::placeholder{color:var(--stone);opacity:.7}
+.btn-fetch{padding:10px 20px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.btn-fetch:hover{background:#2C1D12}
+.btn-fetch:disabled{opacity:.5;cursor:not-allowed}
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.btn-fetch.loading .spinner{display:block}
+.btn-fetch.loading .btn-text{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Manual add toggle */
+.manual-toggle{font-size:.78rem;color:var(--terra);cursor:pointer;text-decoration:underline;margin-top:8px;display:inline-block}
+.manual-form{display:none;margin-top:1rem;padding-top:1rem;border-top:0.5px solid var(--border)}
+.manual-form.open{display:block}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px}
+.form-group label{font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--stone);display:block;margin-bottom:4px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 11px;border:0.5px solid var(--border-md);border-radius:7px;font-size:.875rem;font-family:'DM Sans',sans-serif;color:var(--ink);background:var(--cream);outline:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--terra)}
+.form-group textarea{resize:vertical;min-height:60px}
+.btn-add{padding:9px 20px;background:var(--terra);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-add:hover{background:#A93226}
+
+/* Fetched preview */
+.fetched-preview{display:none;margin-top:1rem;padding:1rem;background:var(--stone-lt);border-radius:10px;border:0.5px solid var(--border)}
+.fetched-preview.show{display:block}
+.preview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px}
+.preview-field label{font-size:.7rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--stone);margin-bottom:3px;display:block}
+.preview-field input{width:100%;padding:7px 10px;border:0.5px solid var(--border-md);border-radius:6px;font-size:.875rem;font-family:'DM Sans',sans-serif;background:var(--white)}
+.preview-actions{display:flex;gap:8px}
+.btn-confirm{padding:8px 18px;background:var(--green);color:#fff;border:none;border-radius:7px;font-size:.8rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-confirm:hover{background:#1B5E20}
+.btn-cancel{padding:8px 14px;background:transparent;color:var(--stone);border:0.5px solid var(--border-md);border-radius:7px;font-size:.8rem;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* ── FILTERS & SORT ── */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap}
+.filter-btns{display:flex;gap:6px;flex-wrap:wrap}
+.fb{padding:5px 12px;border-radius:20px;border:0.5px solid var(--border-md);background:transparent;font-size:.78rem;cursor:pointer;color:var(--stone);font-family:'DM Sans',sans-serif;transition:all .15s}
+.fb.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.ml-auto{margin-left:auto}
+.sort-select{padding:5px 10px;border:0.5px solid var(--border-md);border-radius:7px;font-size:.78rem;font-family:'DM Sans',sans-serif;color:var(--ink);background:var(--cream);outline:none}
+
+/* ── SUMMARY ROW ── */
+.summary-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.75rem}
+.sum-card{background:var(--white);border:0.5px solid var(--border);border-radius:10px;padding:.875rem 1rem;box-shadow:var(--shadow)}
+.sum-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.09em;color:var(--stone);margin-bottom:4px}
+.sum-val{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:600;line-height:1}
+.sum-val.green{color:var(--green)}.sum-val.amber{color:var(--amber)}.sum-val.red{color:var(--red)}
+
+/* ── DRESS GRID ── */
+.dress-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+.dress-card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s}
+.dress-card:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(26,17,8,.1)}
+.dc-header{padding:.875rem 1rem;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.dc-cat{font-size:.62rem;font-weight:500;text-transform:uppercase;letter-spacing:.1em;padding:2px 7px;border-radius:10px;margin-bottom:5px;display:inline-block}
+.cat-evening{background:var(--blue-lt);color:var(--blue)}
+.cat-bridal{background:var(--terra-lt);color:var(--terra)}
+.cat-bridesmaids{background:var(--green-lt);color:var(--green)}
+.cat-other{background:var(--stone-lt);color:var(--stone)}
+.dc-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--ink);line-height:1.25}
+.dc-brand{font-size:.78rem;color:var(--stone);margin-top:2px}
+.dc-actions{display:flex;gap:6px;flex-shrink:0}
+.dc-btn{width:28px;height:28px;border-radius:6px;border:0.5px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--stone);transition:all .15s}
+.dc-btn:hover{background:var(--stone-lt);color:var(--ink)}
+.dc-btn.del:hover{background:var(--red-lt);color:var(--red);border-color:var(--red)}
+.dc-metrics{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:0.5px solid var(--border)}
+.dm{padding:.625rem .875rem;border-right:0.5px solid var(--border)}
+.dm:nth-child(2){border-right:none}
+.dm-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--stone);margin-bottom:2px}
+.dm-val{font-size:.95rem;font-weight:500;color:var(--ink)}
+.dm-val.green{color:var(--green)}.dm-val.amber{color:var(--amber)}.dm-val.red{color:var(--red)}
+.dc-breakdown{padding:.875rem 1rem}
+.breakdown-title{font-size:.65rem;font-weight:500;text-transform:uppercase;letter-spacing:.09em;color:var(--stone);margin-bottom:.5rem}
+.brow{display:flex;justify-content:space-between;font-size:.8rem;padding:3px 0;border-bottom:0.5px solid var(--border)}
+.brow:last-child{border-bottom:none;font-weight:500}
+.brow .bl{color:var(--stone)}
+.brow .bv.pos{color:var(--green)}.brow .bv.neg{color:var(--red)}.brow .bv.total{color:var(--ink);font-weight:500}
+.be-bar{margin-top:.875rem;padding:.625rem .875rem 0;border-top:0.5px solid var(--border)}
+.be-label{display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:5px}
+.be-track{height:7px;background:var(--stone-lt);border-radius:4px;overflow:hidden}
+.be-fill{height:7px;border-radius:4px;transition:width .4s}
+.img-drop{width:100%;height:100px;border:1.5px dashed var(--border-md);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.78rem;color:var(--stone);cursor:pointer;background:var(--cream);transition:all .15s;margin-top:6px;position:relative;overflow:hidden}
+.img-drop:hover{border-color:var(--terra);background:var(--terra-lt)}
+.img-drop.has-image{border:none;padding:0}
+.img-drop.has-image img{width:100%;height:100%;object-fit:cover;border-radius:7px}
+.img-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-paste-note{font-size:.7rem;color:var(--stone);margin-top:3px}
+.dc-notes{padding:.5rem .875rem .875rem;font-size:.78rem;color:var(--stone);font-style:italic;line-height:1.5}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:4rem 2rem;color:var(--stone)}
+.empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.25}
+.empty-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;margin-bottom:.5rem;color:var(--ink)}
+.empty-sub{font-size:.85rem;line-height:1.6}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,17,8,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal{background:var(--white);border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;margin-bottom:1.25rem}
+.modal-actions{display:flex;gap:8px;margin-top:1.25rem}
+
+/* ── COMPARISON ── */
+.compare-bar{background:var(--ink);color:#fff;padding:.75rem 1.25rem;border-radius:10px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;font-size:.83rem}
+.compare-bar.hidden{display:none}
+.btn-compare{padding:6px 14px;background:var(--terra);color:#fff;border:none;border-radius:6px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-compare-clear{background:transparent;border:0.5px solid rgba(255,255,255,.3);padding:6px 10px;border-radius:6px;font-size:.78rem;cursor:pointer;color:rgba(255,255,255,.7);font-family:'DM Sans',sans-serif}
+.compare-check{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--border-md);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;transition:all .15s;margin-bottom:4px}
+.compare-check.sel{background:var(--terra);border-color:var(--terra);color:#fff}
+
+@media(max-width:640px){
+  main{padding:1rem 1rem 3rem}
+  header{padding:.875rem 1rem}
+  .url-row{flex-direction:column}
+  .dress-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div>
+    <div class="logo">On Occasion</div>
+    <div class="logo-sub">Dress Wardrobe</div>
+  </div>
+  <div class="header-right">
+    <div class="stat-chip" id="hdr-inv"><div class="val" id="hdr-count">0</div><div class="lbl">dresses</div></div>
+    <div class="stat-chip"><div class="val" id="hdr-profit">£0</div><div class="lbl">annual profit</div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+    <button onclick="exportWardrobe()" style="padding:6px 12px;background:transparent;border:0.5px solid rgba(255,255,255,.3);border-radius:6px;color:rgba(255,255,255,.7);font-size:.72rem;cursor:pointer;font-family:'DM Sans',sans-serif">Export ↓</button>
+    <label style="padding:6px 12px;background:transparent;border:0.5px solid rgba(255,255,255,.3);border-radius:6px;color:rgba(255,255,255,.7);font-size:.72rem;cursor:pointer;font-family:'DM Sans',sans-serif">Import ↑<input type="file" accept=".json" onchange="importWardrobe(event)" style="display:none"/></label>
+  </div>
+</div>
+</header>
+
+<main>
+
+  <!-- ADD DRESS -->
+  <div class="add-section">
+    <div class="add-title">Add a dress</div>
+    <div class="add-sub">Paste a product URL and the dress name, brand, and colour will be pre-filled. Add the price and image yourself — takes under 60 seconds.</div>
+    <div class="url-row">
+      <input class="url-input" id="url-input" type="url" placeholder="Paste product URL — name, brand & colour filled automatically" />
+      <button class="btn-fetch" id="btn-fetch" onclick="fetchUrl()">
+        <span class="btn-text">Add dress →</span>
+      </button>
+    </div>
+    <div id="fetch-error" style="display:none;margin-top:8px;padding:8px 12px;background:var(--amber-lt);color:var(--amber);border-radius:7px;font-size:.8rem;border-left:3px solid var(--amber)"></div>
+    <span class="manual-toggle" onclick="toggleManual()">+ Add manually instead</span>
+
+    <!-- Fetched preview -->
+    <div class="fetched-preview" id="fetched-preview">
+      <div style="font-size:.82rem;font-weight:500;color:var(--green);margin-bottom:.75rem">✓ Dress details found — review and confirm</div>
+      <div class="preview-grid" id="preview-fields"></div>
+      <div class="preview-actions">
+        <button class="btn-confirm" onclick="confirmAdd()">Add to wardrobe</button>
+        <button class="btn-cancel" onclick="cancelPreview()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Manual form -->
+    <div class="manual-form" id="manual-form">
+      <div class="form-grid">
+        <div class="form-group"><label>Dress name</label><input id="m-name" placeholder="e.g. Waterfall Dress" /></div>
+        <div class="form-group"><label>Designer / Brand</label><input id="m-brand" placeholder="e.g. Georgia Hardinge" /></div>
+        <div class="form-group"><label>Category</label>
+          <select id="m-cat">
+            <option value="Evening dresses">Evening dresses</option>
+            <option value="Bridal">Bridal</option>
+            <option value="Bridesmaids">Bridesmaids</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Retail price (£)</label><input id="m-price" type="number" placeholder="255" /></div>
+        <div class="form-group"><label>Rental price (£)</label><input id="m-rental" type="number" placeholder="90" /></div>
+        <div class="form-group"><label>Sizes available</label><input id="m-sizes" placeholder="e.g. 8–16" /></div>
+        <div class="form-group"><label>Colour</label><input id="m-colour" placeholder="e.g. Blush pink" /></div>
+        <div class="form-group"><label>Fabric</label><input id="m-fabric" placeholder="e.g. Silk, Jersey" /></div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Dress image</label>
+          <div class="img-drop" id="m-img-drop" onclick="document.getElementById('m-img-file').click()" 
+               ondragover="event.preventDefault();this.style.borderColor='var(--terra)'" 
+               ondragleave="this.style.borderColor=''" 
+               ondrop="handleImgDrop(event,'m')">
+            <span id="m-img-label">📷 Click to upload, drag an image, or paste a URL below</span>
+            <input type="file" id="m-img-file" accept="image/*" style="display:none" onchange="handleImgFile(event,'m')" />
+          </div>
+          <input id="m-image" placeholder="Or paste image URL here: right-click any dress photo → Copy Image Address" style="margin-top:6px;width:100%;padding:7px 10px;border:0.5px solid var(--border-md);border-radius:6px;font-size:.875rem;font-family:'DM Sans',sans-serif" oninput="previewImageUrl('m')" />
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Cleaning cost (£)</label><input id="m-clean" type="number" placeholder="16" /></div>
+        <div class="form-group"><label>Shipping out (£)</label><input id="m-ship-out" type="number" placeholder="5.50" /></div>
+        <div class="form-group"><label>Shipping return (£)</label><input id="m-ship-ret" type="number" placeholder="5.50" /></div>
+        <div class="form-group"><label>Packaging (£)</label><input id="m-pack" type="number" placeholder="1.50" /></div>
+      </div>
+      <div class="form-group" style="margin-bottom:10px"><label>Notes</label><textarea id="m-notes" placeholder="Any notes about this dress..."></textarea></div>
+      <button class="btn-add" onclick="addManual()">Add to wardrobe</button>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-row" id="summary-row" style="display:none">
+    <div class="sum-card"><div class="sum-lbl">Total investment</div><div class="sum-val" id="s-invest">£0</div></div>
+    <div class="sum-card"><div class="sum-lbl">Annual gross profit</div><div class="sum-val green" id="s-gross">£0</div></div>
+    <div class="sum-card"><div class="sum-lbl">Best ROI dress</div><div class="sum-val amber" id="s-best">—</div></div>
+    <div class="sum-card"><div class="sum-lbl">Avg break-even</div><div class="sum-val" id="s-be">—</div></div>
+    <div class="sum-card"><div class="sum-lbl">Avg net profit/wear</div><div class="sum-val green" id="s-npw">£0</div></div>
+  </div>
+
+  <!-- COMPARE BAR -->
+  <div class="compare-bar hidden" id="compare-bar">
+    <span id="compare-count">0 dresses selected for comparison</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn-compare-clear" onclick="clearCompare()">Clear</button>
+      <button class="btn-compare" onclick="showComparison()">Compare →</button>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar" id="toolbar" style="display:none">
+    <div class="filter-btns">
+      <button class="fb active" onclick="setFilter('all',this)">All</button>
+      <button class="fb" onclick="setFilter('Evening dresses',this)">Evening</button>
+      <button class="fb" onclick="setFilter('Bridal',this)">Bridal</button>
+      <button class="fb" onclick="setFilter('Bridesmaids',this)">Bridesmaids</button>
+    </div>
+    <select class="sort-select ml-auto" id="sort-select" onchange="render()">
+      <option value="added">Recently added</option>
+      <option value="profit">Highest profit/wear</option>
+      <option value="roi">Best ROI</option>
+      <option value="be">Fastest break-even</option>
+      <option value="price">Price: high to low</option>
+    </select>
+  </div>
+
+  <!-- DRESS GRID -->
+  <div class="dress-grid" id="dress-grid"></div>
+  <div class="empty" id="empty-state">
+    <div class="empty-icon">👗</div>
+    <div class="empty-title">Your wardrobe is empty</div>
+    <div class="empty-sub">Paste a product URL above to add your first dress.<br>Full cost breakdown and rental analysis calculated automatically.</div>
+  </div>
+
+</main>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">Edit dress</div>
+    <div class="form-grid" id="edit-fields"></div>
+    <div class="modal-actions">
+      <button class="btn-add" onclick="saveEdit()">Save changes</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE MODAL -->
+<div class="modal-overlay" id="compare-modal" style="display:none" onclick="if(event.target===this)closeCompareModal()">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-title">Dress comparison</div>
+    <div id="compare-content"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCompareModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TXFEE_PCT = 0.025;
+const TXFEE_FIXED = 0.20;
+const RENTALS_PER_YEAR = 10;
+
+let dresses = JSON.parse(localStorage.getItem('oo-dresses') || '[]');
+let filter = 'all';
+let comparing = new Set();
+let editingId = null;
+let pendingDress = null;
+
+function save() { try { localStorage.setItem('oo-dresses', JSON.stringify(dresses)); } catch(e){} }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+const f = n => '£' + Math.round(Math.abs(n)).toLocaleString();
+const fd = n => '£' + parseFloat(Math.abs(n).toFixed(2)).toLocaleString();
+
+function calcAnalysis(d) {
+  const rental = parseFloat(d.rentalPrice) || 0;
+  const purchase = parseFloat(d.retailPrice) || 0;
+  const cleaning = parseFloat(d.cleaning) || 16;
+  const shipOut = parseFloat(d.shipOut) || 5.50;
+  const shipRet = parseFloat(d.shipRet) || 5.50;
+  const packaging = parseFloat(d.packaging) || 1.50;
+  const txFee = rental * TXFEE_PCT + TXFEE_FIXED;
+  const totalCost = cleaning + shipOut + shipRet + packaging + txFee;
+  const netProfit = rental - totalCost;
+  const breakEven = purchase > 0 && netProfit > 0 ? purchase / netProfit : null;
+  const annualGross = netProfit * RENTALS_PER_YEAR;
+  const roi = purchase > 0 ? (annualGross / purchase * 100) : 0;
+  return { rental, purchase, cleaning, shipOut, shipRet, packaging, txFee: parseFloat(txFee.toFixed(2)), totalCost: parseFloat(totalCost.toFixed(2)), netProfit: parseFloat(netProfit.toFixed(2)), breakEven, annualGross: parseFloat(annualGross.toFixed(2)), roi: parseFloat(roi.toFixed(1)) };
+}
+
+function catClass(cat) {
+  if (!cat) return 'cat-other';
+  const c = cat.toLowerCase();
+  if (c.includes('evening')) return 'cat-evening';
+  if (c.includes('bridal')) return 'cat-bridal';
+  if (c.includes('bridesmaid')) return 'cat-bridesmaids';
+  return 'cat-other';
+}
+
+function beColor(be) {
+  if (!be) return '';
+  if (be <= 3) return 'green';
+  if (be <= 7) return 'amber';
+  return 'red';
+}
+
+function beBarWidth(be) {
+  if (!be) return 0;
+  return Math.min(100, (1 / be) * 100 * 3);
+}
+
+function beBarColor(be) {
+  if (!be) return 'var(--stone)';
+  if (be <= 3) return 'var(--green)';
+  if (be <= 7) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function renderCard(d) {
+  const a = calcAnalysis(d);
+  const isSel = comparing.has(d.id);
+  return `
+    <div class="dress-card" id="card-${d.id}">
+      <div class="dc-header">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <div class="compare-check ${isSel?'sel':''}" onclick="toggleCompare('${d.id}',this)">${isSel?'✓':''}</div>
+            <span class="dc-cat ${catClass(d.category)}">${d.category||'Other'}</span>
+          </div>
+          <div class="dc-name">${d.name||'Unnamed dress'}</div>
+          <div class="dc-brand">${d.brand||''}</div>
+        </div>
+        ${d.image ? `<div style="flex-shrink:0;width:72px;height:80px;border-radius:6px;overflow:hidden;border:0.5px solid var(--border)"><img src="${d.image}" alt="${d.name}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'" /></div>` : ''}
+        <div class="dc-actions">
+          <button class="dc-btn" onclick="editDress('${d.id}')" title="Edit">✎</button>
+          <button class="dc-btn del" onclick="deleteDress('${d.id}')" title="Delete">✕</button>
+        </div>
+      </div>
+      <div class="dc-metrics">
+        <div class="dm"><div class="dm-lbl">Retail price</div><div class="dm-val">${f(a.purchase)}</div></div>
+        <div class="dm"><div class="dm-lbl">Rental price</div><div class="dm-val">${f(a.rental)}</div></div>
+        <div class="dm"><div class="dm-lbl">Net profit/wear</div><div class="dm-val ${a.netProfit>0?'green':'red'}">${fd(a.netProfit)}</div></div>
+        <div class="dm"><div class="dm-lbl">Annual gross (×${RENTALS_PER_YEAR})</div><div class="dm-val ${a.annualGross>0?'green':'red'}">${f(a.annualGross)}</div></div>
+      </div>
+      <div class="dc-breakdown">
+        <div class="breakdown-title">Per-rental cost breakdown</div>
+        <div class="brow"><span class="bl">Rental fee</span><span class="bv pos">+${fd(a.rental)}</span></div>
+        <div class="brow"><span class="bl">Professional cleaning</span><span class="bv neg">−${fd(a.cleaning)}</span></div>
+        <div class="brow"><span class="bl">Shipping (outbound)</span><span class="bv neg">−${fd(a.shipOut)}</span></div>
+        <div class="brow"><span class="bl">Shipping (return)</span><span class="bv neg">−${fd(a.shipRet)}</span></div>
+        <div class="brow"><span class="bl">Packaging</span><span class="bv neg">−${fd(a.packaging)}</span></div>
+        <div class="brow"><span class="bl">Transaction fee (~2.5%)</span><span class="bv neg">−${fd(a.txFee)}</span></div>
+        <div class="brow" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border-md)"><span class="bl" style="font-weight:500">Net profit per wear</span><span class="bv ${a.netProfit>0?'green':'red'}" style="font-weight:500">${fd(a.netProfit)}</span></div>
+      </div>
+      ${a.breakEven ? `
+      <div class="be-bar">
+        <div class="be-label">
+          <span style="font-size:.7rem;color:var(--stone)">Break-even</span>
+          <span style="font-size:.75rem;font-weight:500;color:${beBarColor(a.breakEven)}">${a.breakEven.toFixed(1)} rentals (${Math.ceil(a.breakEven)} bookings)</span>
+        </div>
+        <div class="be-track"><div class="be-fill" style="width:${beBarWidth(a.breakEven)}%;background:${beBarColor(a.breakEven)}"></div></div>
+      </div>` : ''}
+      <div style="padding:.5rem .875rem;font-size:.72rem;color:var(--stone);border-top:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span>ROI (annual)</span>
+        <span style="font-weight:500;color:${a.roi>100?'var(--green)':a.roi>50?'var(--amber)':'var(--red)'}">${a.roi.toFixed(0)}%</span>
+      </div>
+      ${d.notes ? `<div class="dc-notes">"${d.notes}"</div>` : ''}
+      ${d.url ? `<div style="padding:0 .875rem .75rem"><a href="${d.url}" target="_blank" style="font-size:.72rem;color:var(--terra)">View original listing →</a></div>` : ''}
+    </div>`;
+}
+
+function getSorted() {
+  let list = filter === 'all' ? [...dresses] : dresses.filter(d => d.category === filter);
+  const sort = document.getElementById('sort-select')?.value || 'added';
+  list.sort((a, b) => {
+    const aa = calcAnalysis(a), ba = calcAnalysis(b);
+    if (sort === 'profit') return ba.netProfit - aa.netProfit;
+    if (sort === 'roi') return ba.roi - aa.roi;
+    if (sort === 'be') return (aa.breakEven||999) - (ba.breakEven||999);
+    if (sort === 'price') return ba.purchase - aa.purchase;
+    return 0;
+  });
+  return list;
+}
+
+function render() {
+  const grid = document.getElementById('dress-grid');
+  const empty = document.getElementById('empty-state');
+  const toolbar = document.getElementById('toolbar');
+  const summary = document.getElementById('summary-row');
+  const sorted = getSorted();
+
+  document.getElementById('hdr-count').textContent = dresses.length;
+  const totalAnnual = dresses.reduce((s,d) => s + calcAnalysis(d).annualGross, 0);
+  document.getElementById('hdr-profit').textContent = f(totalAnnual);
+
+  if (!dresses.length) {
+    empty.style.display = 'block';
+    grid.innerHTML = '';
+    summary.style.display = 'none';
+    toolbar.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  toolbar.style.display = 'flex';
+  summary.style.display = 'grid';
+
+  const totalInvest = dresses.reduce((s,d) => s + (parseFloat(d.retailPrice)||0), 0);
+  const analyses = dresses.map(d => ({d, a: calcAnalysis(d)}));
+  const bestROI = analyses.sort((a,b) => b.a.roi - a.a.roi)[0];
+  const avgBe = dresses.reduce((s,d) => s + (calcAnalysis(d).breakEven||0), 0) / dresses.length;
+  const avgNpw = dresses.reduce((s,d) => s + calcAnalysis(d).netProfit, 0) / dresses.length;
+
+  document.getElementById('s-invest').textContent = f(totalInvest);
+  document.getElementById('s-gross').textContent = f(totalAnnual);
+  document.getElementById('s-best').textContent = bestROI ? bestROI.d.name?.split(' ').slice(0,2).join(' ') : '—';
+  document.getElementById('s-be').textContent = avgBe ? avgBe.toFixed(1) + ' rentals' : '—';
+  document.getElementById('s-npw').textContent = fd(avgNpw);
+
+  grid.innerHTML = sorted.map(d => renderCard(d)).join('');
+}
+
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function toggleManual() {
+  const form = document.getElementById('manual-form');
+  form.classList.toggle('open');
+  const err = document.getElementById('fetch-error');
+  if (err) err.style.display = 'none';
+}
+
+function showFetchError(msg) {
+  const banner = document.getElementById('fetch-error');
+  if (banner) { banner.textContent = msg + ' Details pre-filled from URL — please complete manually.'; banner.style.display = 'block'; }
+  // Pre-fill URL into manual form and open it
+  const url = document.getElementById('url-input').value.trim();
+  const urlParts = url.split('/');
+  const slug = urlParts[urlParts.length-1] || urlParts[urlParts.length-2] || '';
+  const guessedName = slug.replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+  document.getElementById('m-name').value = guessedName;
+  document.getElementById('manual-form').classList.add('open');
+  document.getElementById('manual-form').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function fetchUrl() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) { alert('Please paste a product URL first.'); return; }
+
+  // Smart pre-fill from URL slug
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname.replace('www.','');
+    const parts = urlObj.pathname.split('/').filter(Boolean);
+    const slug = parts[parts.length-1] || parts[parts.length-2] || '';
+    
+    // Clean up slug into a dress name
+    const name = slug
+      .replace(/[-_]/g,' ')
+      .replace(/\.html?$/i,'')
+      .replace(/\d{5,}/g,'')
+      .trim()
+      .split(' ')
+      .map(w => w.charAt(0).toUpperCase()+w.slice(1))
+      .join(' ')
+      .trim();
+
+    // Guess brand from domain
+    const brandMap = {
+      'georgiahardinge.com':'Georgia Hardinge',
+      'solace-london.com':'Solace London',
+      'revolve.com':'Revolve',
+      'asos.com':'ASOS',
+      'reiss.com':'Reiss',
+      'selfridges.com':'Selfridges',
+      'net-a-porter.com':'Net-a-Porter',
+      'matchesfashion.com':'Matches Fashion',
+      'farfetch.com':'Farfetch',
+      'olviarose.com':'Olvia Rose',
+      'oliviarose.com':'Olivia Rose',
+      'prettylittlething.com':'Pretty Little Thing',
+      'misguided.com':'Misguided',
+      'clublondon.com':'Club L',
+      'azazie.com':'Azazie',
+      'khanums.co':'Khanums',
+      'houseofcb.com':'House of CB',
+      'housecb.com':'House CB',
+      'norma-kamali.com':'Norma Kamali',
+      'rolandmouret.com':'Roland Mouret',
+      'helsa.com':'Helsa',
+    };
+    const brand = Object.entries(brandMap).find(([k]) => domain.includes(k))?.[1] || 
+                  domain.split('.')[0].charAt(0).toUpperCase()+domain.split('.')[0].slice(1);
+
+    // Guess category from slug
+    let category = 'Evening dresses';
+    const slugLower = slug.toLowerCase();
+    if (slugLower.includes('bride') || slugLower.includes('bridal') || slugLower.includes('wedding')) category = 'Bridal';
+    else if (slugLower.includes('bridesmaid')) category = 'Bridesmaids';
+
+    // Guess colour from slug
+    const colours = ['red','blue','green','pink','black','white','cream','ivory','sage','olive','rust','burgundy','navy','gold','silver','blush','nude','yellow','orange','purple','lilac','mint'];
+    const colour = colours.find(c => slugLower.includes(c)) || '';
+
+    pendingDress = {
+      name: name || 'Dress',
+      brand,
+      category,
+      retailPrice: 0,
+      colour: colour.charAt(0).toUpperCase()+colour.slice(1),
+      fabric: '',
+      sizes: '',
+      description: '',
+      url,
+      image: '',
+      rentalPrice: '',
+      cleaning: 16,
+      shipOut: 5.50,
+      shipRet: 5.50,
+      packaging: 1.50
+    };
+
+    showPreview(pendingDress);
+  } catch(e) {
+    showFetchError('Could not read that URL — please add manually.');
+  }
+}
+
+function suggestRentalPrice(retail) {
+  if (!retail) return '';
+  if (retail < 100) return Math.round(retail * 0.7);
+  if (retail < 200) return Math.round(retail * 0.35);
+  if (retail < 400) return Math.round(retail * 0.28);
+  return Math.round(retail * 0.22);
+}
+
+function suggestCleaning(fabric) {
+  if (!fabric) return 16;
+  const f = fabric.toLowerCase();
+  if (f.includes('silk') || f.includes('satin') || f.includes('feather') || f.includes('embelli')) return 25;
+  return 16;
+}
+
+function showPreview(d) {
+  const preview = document.getElementById('fetched-preview');
+  const fields = document.getElementById('preview-fields');
+  const fieldList = [
+    {key:'name', label:'Dress name', type:'text'},
+    {key:'brand', label:'Brand / Designer', type:'text'},
+    {key:'category', label:'Category', type:'select', opts:['Evening dresses','Bridal','Bridesmaids','Other']},
+    {key:'retailPrice', label:'Retail price (£)', type:'number'},
+    {key:'rentalPrice', label:'Rental price (£)', type:'number'},
+    {key:'colour', label:'Colour', type:'text'},
+    {key:'fabric', label:'Fabric', type:'text'},
+    {key:'sizes', label:'Sizes', type:'text'},
+    {key:'cleaning', label:'Cleaning cost (£)', type:'number'},
+    {key:'shipOut', label:'Shipping out (£)', type:'number'},
+    {key:'shipRet', label:'Return shipping (£)', type:'number'},
+    {key:'packaging', label:'Packaging (£)', type:'number'},
+    {key:'image', label:'Image URL', type:'text'},
+  ];
+
+  fields.innerHTML = fieldList.map(f => {
+    if (f.type === 'select') {
+      const opts = f.opts.map(o => `<option value="${o}" ${d[f.key]===o?'selected':''}>${o}</option>`).join('');
+      return `<div class="preview-field"><label>${f.label}</label><select id="pf-${f.key}">${opts}</select></div>`;
+    }
+    return `<div class="preview-field"><label>${f.label}</label><input id="pf-${f.key}" type="${f.type}" value="${d[f.key]||''}" /></div>`;
+  }).join('');
+
+  preview.classList.add('show');
+}
+
+function cancelPreview() {
+  document.getElementById('fetched-preview').classList.remove('show');
+  pendingDress = null;
+  document.getElementById('url-input').value = '';
+}
+
+function confirmAdd() {
+  const fieldKeys = ['name','brand','category','retailPrice','rentalPrice','colour','fabric','sizes','cleaning','shipOut','shipRet','packaging','image'];
+  const dress = { ...pendingDress, id: uid() };
+  fieldKeys.forEach(k => {
+    const el = document.getElementById('pf-' + k);
+    if (el) dress[k] = el.type === 'number' ? parseFloat(el.value)||0 : el.value;
+  });
+  dresses.unshift(dress);
+  save();
+  render();
+  cancelPreview();
+  document.getElementById('url-input').value = '';
+}
+
+function addManual() {
+  const dress = {
+    id: uid(),
+    name: document.getElementById('m-name').value,
+    brand: document.getElementById('m-brand').value,
+    category: document.getElementById('m-cat').value,
+    retailPrice: parseFloat(document.getElementById('m-price').value) || 0,
+    rentalPrice: parseFloat(document.getElementById('m-rental').value) || 0,
+    sizes: document.getElementById('m-sizes').value,
+    colour: document.getElementById('m-colour').value,
+    fabric: document.getElementById('m-fabric').value,
+    cleaning: parseFloat(document.getElementById('m-clean').value) || 16,
+    shipOut: parseFloat(document.getElementById('m-ship-out').value) || 5.50,
+    shipRet: parseFloat(document.getElementById('m-ship-ret').value) || 5.50,
+    packaging: parseFloat(document.getElementById('m-pack').value) || 1.50,
+    notes: document.getElementById('m-notes').value,
+    image: document.getElementById('m-image').value,
+    url: ''
+  };
+  if (!dress.name) { alert('Please enter a dress name'); return; }
+  dresses.unshift(dress);
+  save();
+  render();
+  document.getElementById('manual-form').classList.remove('open');
+  ['m-name','m-brand','m-price','m-rental','m-sizes','m-colour','m-fabric','m-clean','m-ship-out','m-ship-ret','m-pack','m-notes','m-image'].forEach(id => { document.getElementById(id).value = ''; });
+}
+
+function deleteDress(id) {
+  if (!confirm('Remove this dress from your wardrobe?')) return;
+  dresses = dresses.filter(d => d.id !== id);
+  comparing.delete(id);
+  save();
+  render();
+  updateCompareBar();
+}
+
+function editDress(id) {
+  const d = dresses.find(x => x.id === id);
+  if (!d) return;
+  editingId = id;
+  const fields = document.getElementById('edit-fields');
+  const fieldList = [
+    {key:'name',label:'Dress name',type:'text'},
+    {key:'brand',label:'Brand',type:'text'},
+    {key:'category',label:'Category',type:'select',opts:['Evening dresses','Bridal','Bridesmaids','Other']},
+    {key:'retailPrice',label:'Retail price (£)',type:'number'},
+    {key:'rentalPrice',label:'Rental price (£)',type:'number'},
+    {key:'sizes',label:'Sizes',type:'text'},
+    {key:'colour',label:'Colour',type:'text'},
+    {key:'fabric',label:'Fabric',type:'text'},
+    {key:'cleaning',label:'Cleaning cost (£)',type:'number'},
+    {key:'shipOut',label:'Shipping out (£)',type:'number'},
+    {key:'shipRet',label:'Return shipping (£)',type:'number'},
+    {key:'packaging',label:'Packaging (£)',type:'number'},
+    {key:'notes',label:'Notes',type:'text'},
+    {key:'image',label:'Image URL',type:'text'},
+  ];
+  fields.innerHTML = fieldList.map(f => {
+    if (f.type === 'select') {
+      const opts = f.opts.map(o => `<option value="${o}" ${d[f.key]===o?'selected':''}>${o}</option>`).join('');
+      return `<div class="form-group"><label>${f.label}</label><select id="ef-${f.key}">${opts}</select></div>`;
+    }
+    return `<div class="form-group"><label>${f.label}</label><input id="ef-${f.key}" type="${f.type}" value="${d[f.key]||''}" /></div>`;
+  }).join('');
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+
+function saveEdit() {
+  const d = dresses.find(x => x.id === editingId);
+  if (!d) return;
+  const keys = ['name','brand','category','retailPrice','rentalPrice','sizes','colour','fabric','cleaning','shipOut','shipRet','packaging','notes','image'];
+  keys.forEach(k => {
+    const el = document.getElementById('ef-' + k);
+    if (el) d[k] = el.type === 'number' ? parseFloat(el.value)||0 : el.value;
+  });
+  save();
+  render();
+  closeModal();
+}
+
+function closeModal() { document.getElementById('edit-modal').style.display = 'none'; editingId = null; }
+
+function toggleCompare(id, el) {
+  if (comparing.has(id)) { comparing.delete(id); el.classList.remove('sel'); el.textContent = ''; }
+  else if (comparing.size < 4) { comparing.add(id); el.classList.add('sel'); el.textContent = '✓'; }
+  else { alert('You can compare up to 4 dresses at a time.'); return; }
+  updateCompareBar();
+}
+
+function updateCompareBar() {
+  const bar = document.getElementById('compare-bar');
+  if (comparing.size >= 2) {
+    bar.classList.remove('hidden');
+    document.getElementById('compare-count').textContent = comparing.size + ' dresses selected for comparison';
+  } else {
+    bar.classList.add('hidden');
+  }
+}
+
+function clearCompare() {
+  comparing.clear();
+  updateCompareBar();
+  render();
+}
+
+function showComparison() {
+  const selected = [...comparing].map(id => dresses.find(d => d.id === id)).filter(Boolean);
+  const content = document.getElementById('compare-content');
+
+  const metrics = [
+    {key:'retailPrice', label:'Retail price', format: d => f(d.retailPrice)},
+    {key:'rentalPrice', label:'Rental price', format: d => f(d.rentalPrice)},
+    {key:'netProfit', label:'Net profit/wear', format: (d,a) => fd(a.netProfit), highlight: true},
+    {key:'breakEven', label:'Break-even', format: (d,a) => a.breakEven ? a.breakEven.toFixed(1)+' rentals' : '—', highlightLow: true},
+    {key:'annualGross', label:'Annual gross (×'+RENTALS_PER_YEAR+')', format: (d,a) => f(a.annualGross), highlight: true},
+    {key:'roi', label:'ROI (annual)', format: (d,a) => a.roi.toFixed(0)+'%', highlight: true},
+    {key:'cleaning', label:'Cleaning cost', format: d => fd(d.cleaning)},
+    {key:'sizes', label:'Sizes', format: d => d.sizes || '—'},
+  ];
+
+  const analyses = selected.map(d => ({d, a: calcAnalysis(d)}));
+
+  let html = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.82rem">`;
+  html += `<thead><tr><th style="text-align:left;padding:8px;color:var(--stone);font-weight:500;border-bottom:1px solid var(--border)">Metric</th>`;
+  selected.forEach(d => {
+    html += `<th style="text-align:center;padding:8px;color:var(--ink);font-weight:500;border-bottom:1px solid var(--border)">${d.name}<br><span style="font-size:.72rem;color:var(--stone);font-weight:400">${d.brand||''}</span></th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  metrics.forEach((m, mi) => {
+    const vals = analyses.map(({d,a}) => m.format(d,a));
+    const rawVals = analyses.map(({d,a}) => {
+      if (m.highlight) return parseFloat(m.format(d,a)) || 0;
+      if (m.highlightLow) return a.breakEven || 999;
+      return 0;
+    });
+    const best = m.highlight ? Math.max(...rawVals) : m.highlightLow ? Math.min(...rawVals) : null;
+    html += `<tr style="background:${mi%2===0?'var(--stone-lt)':'var(--white)'}">`;
+    html += `<td style="padding:8px;color:var(--stone)">${m.label}</td>`;
+    analyses.forEach(({d,a}, i) => {
+      const val = m.format(d,a);
+      const raw = rawVals[i];
+      const isBest = best !== null && raw === best;
+      const color = isBest ? 'var(--green)' : 'var(--ink)';
+      html += `<td style="text-align:center;padding:8px;font-weight:${isBest?'500':'400'};color:${color}">${val}${isBest?' ✓':''}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  content.innerHTML = html;
+  document.getElementById('compare-modal').style.display = 'flex';
+}
+
+function closeCompareModal() { document.getElementById('compare-modal').style.display = 'none'; }
+
+function handleImgDrop(e, prefix) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const drop = document.getElementById(prefix+'-img-drop');
+      drop.innerHTML = '<img src="'+ev.target.result+'" alt="dress" />';
+      drop.classList.add('has-image');
+      document.getElementById(prefix+'-image').dataset.base64 = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function handleImgFile(e, prefix) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const drop = document.getElementById(prefix+'-img-drop');
+    drop.innerHTML = '<img src="'+ev.target.result+'" alt="dress" />';
+    drop.classList.add('has-image');
+    document.getElementById(prefix+'-image').dataset.base64 = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewImageUrl(prefix) {
+  const input = document.getElementById(prefix+'-image');
+  const url = input.value.trim();
+  if (url) {
+    const drop = document.getElementById(prefix+'-img-drop');
+    drop.innerHTML = '<img src="'+url+'" alt="dress" onerror="this.parentElement.innerHTML='<span>Could not load image — check the URL</span>'" />';
+    drop.classList.add('has-image');
+    delete input.dataset.base64;
+  }
+}
+
+// Override addManual to capture base64 image
+const _origAddManual = addManual;
+function addManual() {
+  const imgInput = document.getElementById('m-image');
+  const base64 = imgInput?.dataset?.base64;
+  if (base64) imgInput.value = base64;
+  _origAddManual();
+  // Reset image drop area
+  const drop = document.getElementById('m-img-drop');
+  if (drop) {
+    drop.innerHTML = '<span id="m-img-label">📷 Click to upload, drag an image, or paste a URL below</span><input type="file" id="m-img-file" accept="image/*" style="display:none" onchange="handleImgFile(event,'m')" />';
+    drop.classList.remove('has-image');
+  }
+  if (imgInput) { imgInput.value = ''; delete imgInput.dataset.base64; }
+}
+
+// Handle paste event globally — if an image is in clipboard, use it
+document.addEventListener('paste', function(e) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const drop = document.getElementById('m-img-drop');
+        if (drop) {
+          drop.innerHTML = '<img src="'+ev.target.result+'" alt="dress" />';
+          drop.classList.add('has-image');
+          const imgInput = document.getElementById('m-image');
+          if (imgInput) imgInput.dataset.base64 = ev.target.result;
+        }
+      };
+      reader.readAsDataURL(file);
+      break;
+    }
+  }
+});
+
+function exportWardrobe() {
+  if (!dresses.length) { alert('No dresses to export yet.'); return; }
+  const data = JSON.stringify(dresses, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'OnOccasion_Wardrobe_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+function importWardrobe(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!Array.isArray(imported)) { alert('Invalid file — please use a wardrobe export file.'); return; }
+      if (dresses.length > 0) {
+        if (!confirm('You have ' + dresses.length + ' dresses already. Add the imported dresses to your existing wardrobe?')) return;
+        // Merge — avoid duplicates by id
+        const existingIds = new Set(dresses.map(d => d.id));
+        const newDresses = imported.filter(d => !existingIds.has(d.id));
+        dresses = [...dresses, ...newDresses];
+        alert('Added ' + newDresses.length + ' dresses. ' + (imported.length - newDresses.length) + ' duplicates skipped.');
+      } else {
+        dresses = imported;
+        alert('Wardrobe restored — ' + dresses.length + ' dresses loaded.');
+      }
+      save();
+      render();
+    } catch(err) {
+      alert('Could not read file. Make sure it is a valid wardrobe export.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+render();
+</script>
+</body>
+</html>
